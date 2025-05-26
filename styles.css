@@ -10,8 +10,6 @@
 body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     line-height: 1.6;
-    color: var(--neutral-dark);
-    background-color: #F5F7FA;
     margin: 0;
     padding: 2rem;
 }
@@ -19,7 +17,6 @@ body {
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    background: white;
     border-radius: 20px;
     box-shadow: 0 8px 24px rgba(45, 111, 247, 0.08);
     padding: 3rem;
@@ -108,7 +105,6 @@ button:hover {
 }
 
 .card {
-    background: white;
     border-radius: 16px;
     padding: 2rem;
     box-shadow: 0 4px 16px rgba(45, 111, 247, 0.06);
@@ -119,25 +115,29 @@ button:hover {
     transform: translateY(-4px);
 }
 
-.card.tiger { border-left: 4px solid var(--primary-color); }
+.card.tiger { border-left: 4px solid #ffe100; }
 .card.futu { border-left: 4px solid var(--accent-color); }
-.card.longbridge { border-left: 4px solid #48BB78; } /* 新增长桥绿色 */
+.card.longbridge { border-left: 4px solid #37a0ff; } /* 新增长桥绿色 */
 
 .card h4 {
     margin-top: 0;
     margin-bottom: 1.5rem;
     font-size: 1.25rem;
-    color: var(--neutral-dark);
 }
 
 .card p {
     margin: 0.75rem 0;
     display: flex;
     justify-content: space-between;
-    color: #4A5568;
 }
 
 .card p strong {
     color: var(--neutral-dark);
     font-weight: 600;
+}
+
+/* 其他样式 */
+
+.line-through {
+    text-decoration: line-through;
 }

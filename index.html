@@ -14,8 +14,9 @@
                 extend: {
                     colors: {
                         'broker-primary': '#2D6FF7',   // 主色（券商蓝）
-                        'broker-pink': '#FF6B6B',      // 富途粉
-                        'broker-green': '#48BB78',     // 长桥绿
+                        'broker-yellow': '#ffe100',   // 老虎黄
+                        'broker-orange': '#FF6900',      // 富途橙
+                        'broker-green': '#37a0ff',     // 长桥蓝
                         // 暗色模式颜色
                         'dark-bg': '#1a1a1a',
                         'dark-card': '#2d2d2d',
@@ -83,36 +84,19 @@
                     </div>
                 </div>
 
-                <!-- 平台费模式选择组（竖排） -->
-                <div class="flex flex-col lg:flex-row gap-4 mb-6">
-                    <div class="w-full lg:w-1/2">
-                        <label id="futuPlatformLabel" class="text-sm font-medium text-gray-500 dark:text-dark-text-secondary mb-2 block">富途平台费模式</label>
-                        <div class="relative">
-                            <select id="futuPlatformMode" 
-                                class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-gray-200 dark:border-gray-700 appearance-none bg-white dark:bg-dark-bg text-gray-900 dark:text-dark-text focus:border-broker-pink focus:ring-2 focus:ring-broker-pink/20 transition">
-                                <option value="fixed">固定式（15港元/订单）</option>
-                                <option value="stepped">阶梯式（1-5笔30港元/笔，6-20笔15港元/笔，21-50笔10港元/笔）</option>
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-gray-700 dark:text-dark-text-secondary">
-                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                    <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
-                                </svg>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="w-full lg:w-1/2">
-                        <label id="longbridgePlatformLabel" class="text-sm font-medium text-gray-500 dark:text-dark-text-secondary mb-2 block">长桥平台费模式</label>
-                        <div class="relative">
-                            <select id="longbridgePlatformMode" 
-                                class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-gray-200 dark:border-gray-700 appearance-none bg-white dark:bg-dark-bg text-gray-900 dark:text-dark-text focus:border-broker-green focus:ring-2 focus:ring-broker-green/20 transition">
-                                <option value="fixed">固定平台费（15港元/订单）</option>
-                                <option value="stepped">阶梯平台费（按订单量计算）</option>
-                            </select>
-                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-gray-700 dark:text-dark-text-secondary">
-                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                    <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
-                                </svg>
-                            </div>
+                <!-- 统一平台费模式选择 -->
+                <div class="w-full mb-6">
+                    <label id="platformModeLabel" class="text-sm font-medium text-gray-500 dark:text-dark-text-secondary mb-2 block">平台费模式</label>
+                    <div class="relative">
+                        <select id="platformModeSelect" 
+                            class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-gray-200 dark:border-gray-700 appearance-none bg-white dark:bg-dark-bg text-gray-900 dark:text-dark-text focus:border-broker-primary focus:ring-2 focus:ring-broker-primary/20 transition">
+                            <option value="fixed">固定式</option>
+                            <option value="stepped">阶梯式</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-gray-700 dark:text-dark-text-secondary">
+                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                            </svg>
                         </div>
                     </div>
                 </div>
@@ -128,7 +112,46 @@
 
             <!-- 美股内容区域 -->
             <div id="us-content" class="hidden">
-                <div id="comingSoon" class="text-center text-lg text-gray-500 dark:text-dark-text-secondary py-16">开发中，尽情期待</div>
+                <!-- 通用输入 -->
+                <div class="flex flex-col lg:flex-row gap-4 mb-4">
+                    <div class="w-full lg:w-1/2">
+                        <label id="usTransactionValueLabel" class="text-sm font-medium text-gray-500 dark:text-dark-text-secondary mb-2 block">输入交易值（美元）</label>
+                        <input type="number" id="usTransactionValue" step="0.01" 
+                            class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-dark-bg text-gray-900 dark:text-dark-text focus:border-broker-primary focus:ring-2 focus:ring-broker-primary/20 transition"
+                            placeholder="请输入交易金额" value="10000">
+                    </div>
+                    <div class="w-full lg:w-1/2">
+                        <label id="usShareCountLabel" class="text-sm font-medium text-gray-500 dark:text-dark-text-secondary mb-2 block">交易股数</label>
+                        <input type="number" id="usShareCount" min="1" value="100"
+                            class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-dark-bg text-gray-900 dark:text-dark-text focus:border-broker-primary focus:ring-2 focus:ring-broker-primary/20 transition"
+                            placeholder="请输入交易股数">
+                    </div>
+                </div>
+                
+                <!-- 平台费模式选择 (美股按股数，可能需要独立或调整 logic) -->
+                <div class="w-full mb-6">
+                    <label id="usPlatformModeLabel" class="text-sm font-medium text-gray-500 dark:text-dark-text-secondary mb-2 block">平台费模式</label>
+                    <div class="relative">
+                        <select id="usPlatformModeSelect" 
+                            class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-gray-200 dark:border-gray-700 appearance-none bg-white dark:bg-dark-bg text-gray-900 dark:text-dark-text focus:border-broker-primary focus:ring-2 focus:ring-broker-primary/20 transition">
+                            <option value="fixed">固定式</option>
+                            <option value="stepped">阶梯式</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-gray-700 dark:text-dark-text-secondary">
+                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                
+                <button onclick="calculateFees()" 
+                    class="w-full bg-broker-primary text-white px-4 py-2 sm:py-3 rounded-full font-medium 
+                    hover:bg-broker-primary/90 transition-shadow hover:shadow-lg">
+                    计算费用对比
+                </button>
+                
+                <div id="us-result" class="mt-8"></div>
             </div>
         </div>
     </div>
@@ -183,19 +206,24 @@
             document.getElementById('transactionValue').placeholder = languages[lang].transactionValuePlaceholder;
             document.getElementById('orderCountLabel').textContent = languages[lang].orderCountLabel;
             document.getElementById('orderCount').placeholder = languages[lang].orderCountPlaceholder;
-            document.getElementById('futuPlatformLabel').textContent = languages[lang].futuPlatformLabel;
-            document.getElementById('longbridgePlatformLabel').textContent = languages[lang].longbridgePlatformLabel;
+            document.getElementById('platformModeLabel').textContent = languages[lang].platformModeLabel;
+            document.getElementById('usTransactionValueLabel').textContent = languages[lang].usTransactionValueLabel;
+            document.getElementById('usTransactionValue').placeholder = languages[lang].usTransactionValuePlaceholder;
+            document.getElementById('usShareCountLabel').textContent = languages[lang].usShareCountLabel;
+            document.getElementById('usShareCount').placeholder = languages[lang].usShareCountPlaceholder;
+            document.getElementById('usPlatformModeLabel').textContent = languages[lang].usPlatformModeLabel;
             document.querySelector('button[onclick="calculateFees()"]').textContent = languages[lang].calculateButton;
             document.getElementById('comingSoon').textContent = languages[lang].comingSoon;
             
             // 更新选择框选项
-            const futuSelect = document.getElementById('futuPlatformMode');
-            futuSelect.options[0].text = languages[lang].fixedMode;
-            futuSelect.options[1].text = languages[lang].steppedMode;
+            const platformModeSelect = document.getElementById('platformModeSelect');
+            platformModeSelect.options[0].text = languages[lang].fixedMode;
+            platformModeSelect.options[1].text = languages[lang].steppedMode;
             
-            const longbridgeSelect = document.getElementById('longbridgePlatformMode');
-            longbridgeSelect.options[0].text = languages[lang].fixedModeLongbridge;
-            longbridgeSelect.options[1].text = languages[lang].steppedModeLongbridge;
+            // 新增美股平台费模式选择框文本更新
+            const usPlatformModeSelect = document.getElementById('usPlatformModeSelect');
+            usPlatformModeSelect.options[0].text = languages[lang].fixedMode;
+            usPlatformModeSelect.options[1].text = languages[lang].steppedMode;
             
             // 更新语言切换按钮文本
             langSwitch.querySelector('span').textContent = lang === 'zh-CN' ? 'English' : '中文';
