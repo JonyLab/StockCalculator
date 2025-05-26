@@ -2,6 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>券商港股费率对比计算器</title>
     <!-- 引入Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -22,40 +23,40 @@
     <!-- 保留Inter字体 -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
-<body class="bg-gray-100 min-h-screen p-8 font-inter">
-    <div class="container max-w-6xl mx-auto bg-white rounded-2xl p-8">
-        <h1 class="text-2xl font-bold text-gray-900 text-center mb-8">券商费率对比计算器</h1>
+<body class="bg-gray-100 min-h-screen p-4 sm:p-8 font-inter">
+    <div class="container max-w-6xl mx-auto bg-white rounded-2xl p-4 sm:p-8">
+        <h1 class="text-xl sm:text-2xl font-bold text-gray-900 text-center mb-6 sm:mb-8">券商费率对比计算器</h1>
 
         <!-- 通用输入（修改后） -->
-        <div class="flex flex-col md:flex-row gap-4 mb-4">
-            <div class="w-full md:w-1/2">
-                <label class="text-sm font-medium text-gray-500 mb-2">输入交易值（港元）</label>
+        <div class="flex flex-col lg:flex-row gap-4 mb-4">
+            <div class="w-full lg:w-1/2">
+                <label class="text-sm font-medium text-gray-500 mb-2 block">输入交易值（港元）</label>
                 <input type="number" id="transactionValue" step="0.01" 
-                    class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-broker-primary focus:ring-2 focus:ring-broker-primary/20 transition"
+                    class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-gray-200 focus:border-broker-primary focus:ring-2 focus:ring-broker-primary/20 transition"
                     placeholder="请输入交易金额" value="10000">
             </div>
-            <div class="w-full md:w-1/2">
-                <label class="text-sm font-medium text-gray-500 mb-2">每月交易笔数</label>
+            <div class="w-full lg:w-1/2">
+                <label class="text-sm font-medium text-gray-500 mb-2 block">每月交易笔数</label>
                 <input type="number" id="orderCount" min="1" value="10"
-                    class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:border-broker-primary focus:ring-2 focus:ring-broker-primary/20 transition"
+                    class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-gray-200 focus:border-broker-primary focus:ring-2 focus:ring-broker-primary/20 transition"
                     placeholder="请输入每月交易笔数">
             </div>
         </div>
 
-        <!-- 平台费模式选择组（并排/竖排自适应） -->
-        <div class="flex flex-col md:flex-row gap-4 mb-6">
-            <div class="w-full md:w-1/2">
-                <label class="text-sm font-medium text-gray-500 mb-2">富途平台费模式</label>
+        <!-- 平台费模式选择组（竖排） -->
+        <div class="flex flex-col lg:flex-row gap-4 mb-6">
+            <div class="w-full lg:w-1/2">
+                <label class="text-sm font-medium text-gray-500 mb-2 block">富途平台费模式</label>
                 <select id="futuPlatformMode" 
-                    class="w-full px-4 py-3 rounded-lg border border-gray-200 appearance-none pr-10 bg-[url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\'%3E%3Cpath d=\'M7 10L12 15L17 10\' stroke=\'%23718096\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'/ %3E%3C/svg%3E')] bg-no-repeat bg-right-3 bg-[length:1.25rem_1.25rem] focus:border-broker-pink focus:ring-2 focus:ring-broker-pink/20 transition">
+                    class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-gray-200 appearance-none pr-10 bg-[url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\'%3E%3Cpath d=\'M7 10L12 15L17 10\' stroke=\'%23718096\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'/ %3E%3C/svg%3E')] bg-no-repeat bg-right-3 bg-[length:1.25rem_1.25rem] focus:border-broker-pink focus:ring-2 focus:ring-broker-pink/20 transition">
                     <option value="fixed">固定式（15港元/订单）</option>
                     <option value="stepped">阶梯式（1-5笔30港元/笔，6-20笔15港元/笔，21-50笔10港元/笔）</option>
                 </select>
             </div>
-            <div class="w-full md:w-1/2">
-                <label class="text-sm font-medium text-gray-500 mb-2">长桥平台费模式</label>
+            <div class="w-full lg:w-1/2">
+                <label class="text-sm font-medium text-gray-500 mb-2 block">长桥平台费模式</label>
                 <select id="longbridgePlatformMode" 
-                    class="w-full px-4 py-3 rounded-lg border border-gray-200 appearance-none pr-10 bg-[url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\'%3E%3Cpath d=\'M7 10L12 15L17 10\' stroke=\'%23718096\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'/ %3E%3C/svg%3E')] bg-no-repeat bg-right-3 bg-[length:1.25rem_1.25rem] focus:border-broker-green focus:ring-2 focus:ring-broker-green/20 transition">
+                    class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-gray-200 appearance-none pr-10 bg-[url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'16\' height=\'16\' viewBox=\'0 0 24 24\' fill=\'none\'%3E%3Cpath d=\'M7 10L12 15L17 10\' stroke=\'%23718096\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'/ %3E%3C/svg%3E')] bg-no-repeat bg-right-3 bg-[length:1.25rem_1.25rem] focus:border-broker-green focus:ring-2 focus:ring-broker-green/20 transition">
                     <option value="fixed">固定平台费（15港元/订单）</option>
                     <option value="stepped">阶梯平台费（按订单量计算）</option>
                 </select>
@@ -63,12 +64,12 @@
         </div>
 
         <button onclick="calculateFees()" 
-            class="w-full bg-broker-primary text-white px-4 py-3 rounded-lg font-medium 
+            class="w-full bg-broker-primary text-white px-4 py-2 sm:py-3 rounded-lg font-medium 
             hover:bg-broker-primary/90 transition-shadow hover:shadow-lg">
             计算费用对比
         </button>
 
-        <div id="result" class="mt-12"></div>
+        <div id="result" class="mt-8"></div>
     </div>
     <script src="script.js"></script>
 </body>
