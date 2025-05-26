@@ -7,9 +7,13 @@ function ceilToWhole(value) {
 }
 
 function tigerTransactionFee(transactionValue) {
-    const fee = transactionValue * 0.0000565;
+    const fee = transactionValue * 0.00029; // 0.029%佣金
     const rounded = roundToCents(fee);
     return Math.max(rounded, 0.01);
+}
+
+function tigerPlatformFee() {
+    return 15; // 固定平台费15港元/笔
 }
 
 function tigerStampDuty(transactionValue) {
@@ -90,13 +94,14 @@ function calculateFees() {
         return;
     }
 
-    // 计算老虎证券费用（保留原逻辑）
+    // 计算老虎证券费用
     const tf = tigerTransactionFee(transactionValue);
+    const pf = tigerPlatformFee();
     const sd = tigerStampDuty(transactionValue);
     const sl = tigerSfcLevy(transactionValue);
     const fl = tigerFrcLevy(transactionValue);
     const sf = tigerSettlementFee(transactionValue);
-    const tigerTotal = tf + sd + sl + fl + sf;
+    const tigerTotal = tf + pf + sd + sl + fl + sf;
 
     // 计算长桥证券费用（保留原逻辑）
     const lbComm = longbridgeCommission(transactionValue);
@@ -131,8 +136,8 @@ function calculateFees() {
                         <div class="text-xs text-gray-500 tracking-wide">TIGER BROKERS</div>
                     </div>
                 </div>
-                <p class="text-sm text-gray-600 flex justify-between w-full"><span>交易佣金</span><span class='text-gray-400 line-through'>0.00 港元</span></p>
-                <p class="text-sm text-gray-600 flex justify-between w-full"><span>平台使用费</span><span class='text-gray-400 line-through'>0.00 港元</span></p>
+                <p class="text-sm text-gray-600 flex justify-between w-full"><span>交易佣金</span><span>${tf.toFixed(2)} 港元</span></p>
+                <p class="text-sm text-gray-600 flex justify-between w-full"><span>平台使用费</span><span>${pf} 港元</span></p>
                 <p class="text-sm text-gray-600 flex justify-between w-full"><span>交易费</span><span>${tf.toFixed(2)} 港元</span></p>
                 <p class="text-sm text-gray-600 flex justify-between w-full"><span>股票印花税</span><span>${sd} 港元</span></p>
                 <p class="text-sm text-gray-600 flex justify-between w-full"><span>交易征费</span><span>${sl.toFixed(2)} 港元</span></p>
