@@ -57,11 +57,13 @@
             <!-- Tab 组件 -->
             <div class="w-full mb-8">
                 <div id="marketTab" class="flex bg-gray-100 dark:bg-dark-bg rounded-full p-1 gap-2 w-full">
-                    <button id="tab-hk" type="button" class="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-full font-bold text-base focus:outline-none transition bg-white dark:bg-dark-card shadow text-black dark:text-dark-text">
-                        港股
+                    <button id="tab-hk" type="button" class="flex-1 flex items-center justify-center gap-2 px-6 h-12 rounded-full font-medium text-base focus:outline-none transition bg-white dark:bg-dark-card shadow text-black dark:text-dark-text">
+                        <img src="public/hk.svg" alt="港股" class="w-5 h-5" />
+                        <span>港股</span>
                     </button>
-                    <button id="tab-us" type="button" class="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-full font-bold text-base focus:outline-none transition text-gray-500 dark:text-dark-text-secondary bg-transparent">
-                        美股
+                    <button id="tab-us" type="button" class="flex-1 flex items-center justify-center gap-2 px-6 h-12 rounded-full font-medium text-base focus:outline-none transition text-gray-500 dark:text-dark-text-secondary bg-transparent">
+                        <img src="public/us.svg" alt="美股" class="w-5 h-5" />
+                        <span>美股</span>
                     </button>
                 </div>
             </div>
@@ -102,7 +104,7 @@
                 </div>
 
                 <button onclick="calculateFees()" 
-                    class="w-full bg-broker-primary text-white px-4 py-2 sm:py-3 rounded-full font-medium 
+                    class="w-full bg-broker-primary text-white px-4 h-12 rounded-full font-medium 
                     hover:bg-broker-primary/90 transition-shadow hover:shadow-lg">
                     计算费用对比
                 </button>
@@ -171,7 +173,7 @@
                 </div>
 
                 <button onclick="calculateFees()" 
-                    class="w-full bg-broker-primary text-white px-4 py-2 sm:py-3 rounded-full font-medium 
+                    class="w-full bg-broker-primary text-white px-4 h-12 rounded-full font-medium 
                     hover:bg-broker-primary/90 transition-shadow hover:shadow-lg" id="calculateButton">
                     计算费用对比
                 </button>
@@ -214,8 +216,8 @@
             
             // 更新所有文本内容
             document.getElementById('pageTitle').textContent = languages[lang].title;
-            document.getElementById('tab-hk').textContent = languages[lang].hkTab;
-            document.getElementById('tab-us').textContent = languages[lang].usTab;
+            document.querySelector('#tab-hk span').textContent = languages[lang].hkTab.replace('🇭🇰 ', '');
+            document.querySelector('#tab-us span').textContent = languages[lang].usTab.replace('🇺🇸 ', '');
             document.getElementById('transactionValueLabel').textContent = languages[lang].transactionValueLabel;
             document.getElementById('transactionValue').placeholder = languages[lang].transactionValuePlaceholder;
             document.getElementById('orderCountLabel').textContent = languages[lang].orderCountLabel;
