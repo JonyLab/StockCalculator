@@ -1,8 +1,8 @@
 const languages = {
     'zh-CN': {
         title: '券商费率对比计算器',
-        hkTab: '港股',
-        usTab: '美股',
+        hkTab: '🇭🇰 港股',
+        usTab: '🇺🇸 美股',
         transactionValueLabel: '输入交易值（港元）',
         transactionValuePlaceholder: '请输入交易金额',
         orderCountLabel: '每月交易笔数',
@@ -50,8 +50,8 @@ const languages = {
     },
     'en-US': {
         title: 'Broker Fee Comparison Calculator',
-        hkTab: 'HK Stocks',
-        usTab: 'US Stocks',
+        hkTab: '🇭🇰 HK Stocks',
+        usTab: '🇺🇸 US Stocks',
         transactionValueLabel: 'Transaction Value (HKD)',
         transactionValuePlaceholder: 'Enter transaction amount',
         orderCountLabel: 'Monthly Orders',
