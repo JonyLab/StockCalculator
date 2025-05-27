@@ -172,9 +172,9 @@
 
         <button onclick="calculateFees()" 
                     class="w-full bg-broker-primary text-white px-4 py-2 sm:py-3 rounded-full font-medium 
-            hover:bg-broker-primary/90 transition-shadow hover:shadow-lg">
-            计算费用对比
-        </button>
+                    hover:bg-broker-primary/90 transition-shadow hover:shadow-lg" id="calculateButton">
+                    计算费用对比
+                </button>
 
                 <div id="us-result" class="mt-8"></div>
             </div>
@@ -238,8 +238,16 @@
             document.getElementById('usShareCount').placeholder = languages[lang].usShareCountPlaceholder;
             document.getElementById('usPlatformModeLabel').textContent = languages[lang].usPlatformModeLabel;
             document.querySelector('button[onclick="calculateFees()"]').textContent = languages[lang].calculateButton;
-            document.getElementById('comingSoon').textContent = languages[lang].comingSoon;
+            document.getElementById('calculateButton').textContent = languages[lang].calculateButton;
+            document.getElementById('usTransactionDirectionLabel').textContent = languages[lang].usTransactionDirectionLabel;
             
+            const usMonthlyShareCountLabel = document.getElementById('usMonthlyShareCountLabel');
+            usMonthlyShareCountLabel.textContent = languages[lang].usMonthlyShareCountLabel;
+            usMonthlyShareCountLabel.placeholder = languages[lang].usMonthlyShareCountPlaceholder;
+
+            const transactionDirectionSelect = document.getElementById('usTransactionDirectionSelect');
+            transactionDirectionSelect.options[0].text = languages[lang].buyDirection;
+            transactionDirectionSelect.options[1].text = languages[lang].sellDirection;
             // 更新选择框选项
             const platformModeSelect = document.getElementById('platformModeSelect');
             platformModeSelect.options[0].text = languages[lang].fixedMode;

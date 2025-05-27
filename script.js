@@ -581,37 +581,6 @@ function calculateFees() {
                     </div>
                 </div>
 
-                <!-- 长桥证券美股卡片 -->
-                <div class="bg-blue-50 dark:bg-broker-green/10 rounded-lg p-6 border-l-4 border-blue-500 dark:border-broker-green break-words flex flex-col">
-                    <div class="flex items-center mb-4">
-                        <img src="public/longbridge.png" alt="长桥证券" class="h-8 w-auto mr-3 rounded-full" />
-                        <div>
-                            <div class="text-base font-semibold text-gray-900 dark:text-dark-text leading-tight flex items-center">
-                                长桥证券 (美股)
-                                ${longbridgeUSTotal === minTotal ? `<span class="ml-1 px-1.5 py-0.5 text-[10px] font-medium text-broker-green bg-broker-green/10 dark:bg-broker-green/20 rounded-full">${languages[currentLang].bestPrice}</span>` : ''}
-                            </div>
-                            <div class="text-xs text-gray-500 dark:text-dark-text-secondary tracking-wide">LONGBRIDGE</div>
-                        </div>
-                    </div>
-                    <div class="flex-grow">
-                        <h4 class="text-sm font-semibold text-gray-700 dark:text-dark-text-secondary mb-2">${languages[currentLang].agencyServiceFee}</h4>
-                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].commission}</span><span class="${lbUSComm === 0 ? 'line-through' : ''}">${lbUSComm.toFixed(4)} ${currencyUnit}</span></p>
-                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].platformFee}</span><span class="${lbUSPf === 0 ? 'line-through' : ''}">${lbUSPf.toFixed(4)} ${currencyUnit}</span></p>
-                        
-                        <h4 class="text-sm font-semibold text-gray-700 dark:text-dark-text-secondary mt-4 mb-2">${languages[currentLang].collectedFee}</h4>
-                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].usClearingFee}</span><span class="${longbridgeUSClearFee === 0 ? 'line-through' : ''}">${longbridgeUSClearFee.toFixed(4)} ${currencyUnit}</span></p>
-                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].usSECRegulatoryFee}</span><span class="${longbridgeUSSecLevy === 0 ? 'line-through' : ''}">${longbridgeUSSecLevy.toFixed(4)} ${currencyUnit}</span></p>
-                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].usTradingActivityFee}</span><span class="${longbridgeUSTradingFee === 0 ? 'line-through' : ''}">${longbridgeUSTradingFee.toFixed(4)} ${currencyUnit}</span></p>
-                    </div>
-                    
-                    <div class="mt-4 border-t border-gray-200 dark:border-gray-700 pt-3 w-full">
-                        <p class="text-base font-semibold text-gray-900 dark:text-dark-text flex justify-between w-full">
-                            <span>${languages[currentLang].totalFee}</span>
-                            <span>${longbridgeUSTotal.toFixed(4)} ${currencyUnit}</span>
-                        </p>
-                    </div>
-                </div>
-
                 <!-- 富途证券美股卡片 -->
                 <div class="bg-orange-50 dark:bg-broker-orange/10 rounded-lg p-6 border-l-4 border-orange-400 dark:border-broker-orange break-words flex flex-col">
                     <div class="flex items-center mb-4">
@@ -642,6 +611,38 @@ function calculateFees() {
                         </p>
                     </div>
                 </div>
+
+                 <!-- 长桥证券美股卡片 -->
+                <div class="bg-blue-50 dark:bg-broker-green/10 rounded-lg p-6 border-l-4 border-blue-500 dark:border-broker-green break-words flex flex-col">
+                    <div class="flex items-center mb-4">
+                        <img src="public/longbridge.png" alt="长桥证券" class="h-8 w-auto mr-3 rounded-full" />
+                        <div>
+                            <div class="text-base font-semibold text-gray-900 dark:text-dark-text leading-tight flex items-center">
+                                长桥证券 (美股)
+                                ${longbridgeUSTotal === minTotal ? `<span class="ml-1 px-1.5 py-0.5 text-[10px] font-medium text-broker-green bg-broker-green/10 dark:bg-broker-green/20 rounded-full">${languages[currentLang].bestPrice}</span>` : ''}
+                            </div>
+                            <div class="text-xs text-gray-500 dark:text-dark-text-secondary tracking-wide">LONGBRIDGE</div>
+                        </div>
+                    </div>
+                    <div class="flex-grow">
+                        <h4 class="text-sm font-semibold text-gray-700 dark:text-dark-text-secondary mb-2">${languages[currentLang].agencyServiceFee}</h4>
+                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].commission}</span><span class="${lbUSComm === 0 ? 'line-through' : ''}">${lbUSComm.toFixed(4)} ${currencyUnit}</span></p>
+                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].platformFee}</span><span class="${lbUSPf === 0 ? 'line-through' : ''}">${lbUSPf.toFixed(4)} ${currencyUnit}</span></p>
+                        
+                        <h4 class="text-sm font-semibold text-gray-700 dark:text-dark-text-secondary mt-4 mb-2">${languages[currentLang].collectedFee}</h4>
+                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].usClearingFee}</span><span class="${longbridgeUSClearFee === 0 ? 'line-through' : ''}">${longbridgeUSClearFee.toFixed(4)} ${currencyUnit}</span></p>
+                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].usSECRegulatoryFee}</span><span class="${longbridgeUSSecLevy === 0 ? 'line-through' : ''}">${longbridgeUSSecLevy.toFixed(4)} ${currencyUnit}</span></p>
+                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].usTradingActivityFee}</span><span class="${longbridgeUSTradingFee === 0 ? 'line-through' : ''}">${longbridgeUSTradingFee.toFixed(4)} ${currencyUnit}</span></p>
+                    </div>
+                    
+                    <div class="mt-4 border-t border-gray-200 dark:border-gray-700 pt-3 w-full">
+                        <p class="text-base font-semibold text-gray-900 dark:text-dark-text flex justify-between w-full">
+                            <span>${languages[currentLang].totalFee}</span>
+                            <span>${longbridgeUSTotal.toFixed(4)} ${currencyUnit}</span>
+                        </p>
+                    </div>
+                </div>
+
             </div>
         </div>
         <p class="text-center text-gray-500 dark:text-dark-text-secondary mt-6 text-xs">${languages[currentLang].disclaimer}</p>
