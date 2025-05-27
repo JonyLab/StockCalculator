@@ -46,7 +46,10 @@ const languages = {
         // 错误提示
         invalidInput: '请输入有效的正交易值！',
         // 免责声明
-        disclaimer: '以上计算过程及结果均依据对应平台官网在特定时间点提供的数据，不保证具备最新时效性，本网站开发者不对其准确性负责，详细计费规则请以对应平台实际情况为准'
+        disclaimer: '以上计算过程及结果均依据对应平台官网在特定时间点提供的数据，不保证具备最新时效性，本网站开发者不对其准确性负责，详细计费规则请以对应平台实际情况为准',
+        // 主题模式
+        lightMode: '亮色模式',
+        darkMode: '暗色模式'
     },
     'en-US': {
         title: 'Broker Fee Comparison Calculator',
@@ -95,6 +98,9 @@ const languages = {
         // Error messages
         invalidInput: 'Please enter a valid positive transaction value!',
         // Disclaimer
-        disclaimer: 'The above calculation process and results are based on data provided by the respective platform\'s official website at specific points in time, and are not guaranteed to be the most up-to-date. The developer of this website is not responsible for their accuracy. For detailed billing rules, please refer to the actual situation of the respective platform.'
+        disclaimer: 'The above calculation process and results are based on data provided by the respective platform\'s official website at specific points in time, and are not guaranteed to be the most up-to-date. The developer of this website is not responsible for their accuracy. For detailed billing rules, please refer to the actual situation of the respective platform.',
+        // Theme modes
+        lightMode: 'Light Mode',
+        darkMode: 'Dark Mode'
     }
 }; 

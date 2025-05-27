@@ -179,7 +179,7 @@ function tigerUSSECRegulatoryFee(transactionValue) {
 // Tiger US Trading Activity Fee (交易活动费)
 // Rule: 0.000166 USD * Sell Quantity, min 0.01 USD, max 8.30 USD (美国金融业监管局)
 // Note: Using Shares Traded as a placeholder for Sell Quantity for now.
-function tigerUSTradingActivityFee(shareCount) {
+function tigerUSTradingActivityFee(shareCount, transactionDirection) {
     const feePerShare = 0.000166;
     const calculatedFee = feePerShare * shareCount;
     
@@ -317,7 +317,55 @@ function futuUSTradingActivityFee(shareCount, transactionDirection) {
 // Rule: 0.003 USD * Shares Traded, max 7% * Transaction Value (美国结算机构)
 const futuUSClearingFee = tigerUSClearingFee; // Reuse the function as the rule is the same
 
+// IBKR US Stock Fees
+function ibkrUSCommission(mode, shares, monthlyShares, transactionValue) {
+    let rate;
+    if (mode === 'fixed') {
+        rate = 0.005; // Fixed rate
+    } else if (mode === 'stepped') {
+        // Tiered rates based on monthly share volume
+        if (monthlyShares <= 300000) rate = 0.0035;
+        else if (monthlyShares <= 3000000) rate = 0.0020;
+        else if (monthlyShares <= 20000000) rate = 0.0015;
+        else if (monthlyShares <= 100000000) rate = 0.0010;
+        else rate = 0.0005; // > 100,000,000 shares
+    } else {
+        return 0;
+    }
+
+    let commission = shares * rate;
+    const minCommission = mode === 'fixed' ? 1.00 : 0.35; // Minimum per order
+    const maxCommission = transactionValue * 0.01; // 1% of trade value
+
+    return Math.min(Math.max(commission, minCommission), maxCommission);
+}
+
+function ibkrUSThirdPartyFees(shares, transactionValue, direction) {
+    let fees = {};
+    // SEC Transaction Fee (Sell orders only, calculated on value of sale)
+    fees.secFee = (direction === 'sell') ? transactionValue * 0.0000278 : 0; // Using rate from search result example
+    // Note: Screenshot shows 0.00 for SEC fee, using search result rate as it's more likely correct for calculation.
+
+    // FINRA Trading Activity Fee (Sell orders only, calculated on quantity)
+    fees.finraTaf = (direction === 'sell') ? roundToCents(shares * 0.000166) : 0;
+
+    // FINRA Consolidated Audit Trail Fee (CAT Fee) (Calculated on quantity, usually both buy and sell)
+    fees.catFee = roundToCents(shares * 0.000035);
+
+    // Note: Exchange fees, clearing fees, and pass-through fees can also apply but are complex and variable.
+    // This function includes the main regulatory fees mentioned in the screenshot/search.
+
+    fees.total = fees.secFee + fees.finraTaf + fees.catFee;
+
+    return fees;
+}
+
 function calculateFees() {
+    // 确保 currentLang 已初始化
+    if (typeof currentLang === 'undefined') {
+        currentLang = 'zh-CN'; // 默认使用中文
+    }
+
     const activeTab = document.querySelector('#marketTab button:not(.text-gray-500)').id;
     
     let transactionValue, orderCount, shareCount, monthlyShareCount, platformMode;
@@ -374,7 +422,7 @@ function calculateFees() {
 
         // 生成结果HTML (港股)
     resultDiv.innerHTML = `
-             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+             <div class="grid grid-cols-1 mt-8 md:grid-cols-3 gap-4">
             <!-- 老虎证券卡片 -->
                  <div class="bg-yellow-50 dark:bg-broker-yellow/10 rounded-lg p-6 border-l-4 border-yellow-400 dark:border-broker-yellow break-words">
                      <div class="flex items-center mb-4">
@@ -478,105 +526,108 @@ function calculateFees() {
                  </div>
              </div>
              <div class="text-center text-gray-500 dark:text-dark-text-secondary mt-6 text-sm">${languages[currentLang].moreBrokers}</div>
-             <p class="text-center text-gray-500 dark:text-dark-text-secondary mt-6 text-xs">${languages[currentLang].disclaimer}</p>
+             <p class="text-center text-gray-400 dark:text-dark-text-secondary mt-6 text-xs">${languages[currentLang].disclaimer}</p>
          `;
     } else if (activeTab === 'tab-us') {
         const usTransactionValue = parseFloat(document.getElementById('usTransactionValue').value);
         const usShareCount = parseInt(document.getElementById('usShareCount').value) || 0;
-        const usMonthlyShareCount = parseInt(document.getElementById('usMonthlyShareCount').value) || 0;
-        const usPlatformMode = document.getElementById('usPlatformModeSelect').value;
-        const usTransactionDirection = document.getElementById('usTransactionDirectionSelect').value;
+        const usMonthlyShareCount = parseInt(document.getElementById('usMonthlyShareCount').value) || usShareCount; // 如果月交易股数未输入，使用单次交易股数作为估计
+        const usTransactionDirectionSelect = document.getElementById('usTransactionDirectionSelect');
+        const usTransactionDirection = usTransactionDirectionSelect.value; // 'buy' or 'sell'
+        const usPlatformModeSelect = document.getElementById('usPlatformModeSelect');
+        const usPlatformMode = usPlatformModeSelect.value; // 'fixed' or 'stepped'
         currencyUnit = 'USD'; // 美股使用美元
 
-        // 输入验证
-        if (isNaN(usTransactionValue) || usTransactionValue <= 0 || isNaN(usShareCount) || usShareCount <= 0 || isNaN(usMonthlyShareCount) || usMonthlyShareCount < 0) { // Monthly share count can be 0 for fixed fee calculation
-            document.getElementById('us-result').innerHTML = `<p class="text-red-500 dark:text-red-400">${languages[currentLang].invalidInput}</p>`;
+        // 检查输入是否有效
+        if (isNaN(usTransactionValue) || usTransactionValue <= 0 || isNaN(usShareCount) || usShareCount <= 0 || isNaN(usMonthlyShareCount) || usMonthlyShareCount < 0) {
+            document.getElementById('us-result').innerHTML = `<p class="text-red-500">${languages[currentLang].invalidInput}</p>`;
             return;
         }
 
-        // 为了计算依赖价格的费用 (如交收费上限)，需要一个估算价格或单独输入
-        // 这里暂时根据交易值和股数估算价格
-        const estimatedPrice = usShareCount > 0 ? usTransactionValue / usShareCount : 0;
-
-        // 长桥美股计算 - 更新代收费用计算和总费用
-        const lbUSComm = longbridgeUSCommission(usShareCount, estimatedPrice);
-        let lbUSPf;
+        // 计算老虎证券美股费用
+        const tigerUSComm = tigerUSCommission(usShareCount, usTransactionValue);
+        // 老虎美股平台费根据模式计算
+        let tigerUSPf = 0;
         if (usPlatformMode === 'fixed') {
-            lbUSPf = longbridgeUSPlatformFeeFixed(usShareCount);
-        } else {
-            lbUSPf = longbridgeUSPlatformFeeStepped(usMonthlyShareCount, usShareCount);
+            tigerUSPf = tigerUSPlatformFeeFixed(usShareCount);
+        } else if (usPlatformMode === 'stepped') {
+             tigerUSPf = tigerUSPlatformFeeStepped(usMonthlyShareCount, usShareCount);
         }
-        // 新的代收费用计算 (重用老虎的函数)
-        const longbridgeUSClearFee = longbridgeUSClearingFee(usShareCount, usTransactionValue);
-        const longbridgeUSSecLevy = longbridgeUSSECRegulatoryFee(usTransactionValue);
-        // 交易活动费只在卖出时收取
-        const longbridgeUSTradingFee = usTransactionDirection === 'sell' ? longbridgeUSTradingActivityFee(usShareCount) : 0;
-        // 长桥美股总费用 = 佣金 + 平台费 + 交收费 + 证监会规费 + 交易活动费
-        const longbridgeUSTotal = lbUSComm + lbUSPf + longbridgeUSClearFee + longbridgeUSSecLevy + longbridgeUSTradingFee; // 移除了 lbUSExFee 和 lbUSSECFee，加入新的代收费用
-
-        // 老虎美股计算
-        const usComm = tigerUSCommission(usShareCount, usTransactionValue);
-        let usPf;
-        if (usPlatformMode === 'fixed') {
-            usPf = tigerUSPlatformFeeFixed(usShareCount);
-        } else {
-            usPf = tigerUSPlatformFeeStepped(usMonthlyShareCount, usShareCount);
-        }
-        // 老虎的代收费用计算已经使用了新的函数
         const tigerUSClearFee = tigerUSClearingFee(usShareCount, usTransactionValue);
         const tigerUSSecLevy = tigerUSSECRegulatoryFee(usTransactionValue);
-        const tigerUSTradingFee = usTransactionDirection === 'sell' ? tigerUSTradingActivityFee(usShareCount) : 0;
-        const tigerUSTotal = usComm + usPf + tigerUSClearFee + tigerUSSecLevy + tigerUSTradingFee;
+        const tigerUSTradingFee = tigerUSTradingActivityFee(usShareCount, usTransactionDirection);
+        const tigerUSTotal = tigerUSComm + tigerUSPf + tigerUSClearFee + tigerUSSecLevy + tigerUSTradingFee;
 
-        // 富途美股计算 - 更新佣金和平台费计算, ADDING Clearing Fee
-        const futuUSComm = futuUSCommission(usShareCount); // 现在传入股数
-        let futuUSPf;
+        // 计算富途证券美股费用
+        const futuUSComm = futuUSCommission(usShareCount);
+         let futuUSPf = 0;
         if (usPlatformMode === 'fixed') {
             futuUSPf = futuUSPlatformFeeFixed(usShareCount);
-        } else {
-            futuUSPf = futuUSPlatformFeeStepped(usMonthlyShareCount, usShareCount);
+        } else if (usPlatformMode === 'stepped') {
+             futuUSPf = futuUSPlatformFeeStepped(usMonthlyShareCount, usShareCount);
         }
-        // Use updated functions for SEC Regulatory Fee and Trading Activity Fee
-        const futuUSSECFee = futuUSSECRegulatoryFee(usTransactionValue, usTransactionDirection); // Pass transaction direction
-        const futuUSTAFee = futuUSTradingActivityFee(usShareCount, usTransactionDirection); // Pass transaction direction
-        const futuUSClearFee = futuUSClearingFee(usShareCount, usTransactionValue); // Add Clearing Fee
+        const futuUSClearFee = futuUSClearingFee(usShareCount, usTransactionValue);
+        const futuUSSecLevy = futuUSSECRegulatoryFee(usTransactionValue, usTransactionDirection);
+        const futuUSTradingFee = futuUSTradingActivityFee(usShareCount, usTransactionDirection);
+        const futuUSTotal = futuUSComm + futuUSPf + futuUSClearFee + futuUSSecLevy + futuUSTradingFee;
 
-        // 富途美股总费用 = 佣金 + 平台费 + 证监会规费 + 交易活动费 + 交收费 (Clearing Fee)
-        const futuUSTotal = futuUSComm + futuUSPf + futuUSSECFee + futuUSTAFee + futuUSClearFee;
+        // 计算长桥证券美股费用
+        const longbridgeUSComm = longbridgeUSCommission(usShareCount, usTransactionValue / usShareCount); // Assuming price is transactionValue / shareCount
+         let longbridgeUSPf = 0;
+         if (usPlatformMode === 'fixed') {
+             longbridgeUSPf = longbridgeUSPlatformFeeFixed(usShareCount);
+         } else if (usPlatformMode === 'stepped') {
+             longbridgeUSPf = longbridgeUSPlatformFeeStepped(usMonthlyShareCount, usShareCount);
+         }
+        const longbridgeUSClearFee = longbridgeUSClearingFee(usShareCount, usTransactionValue);
+        const longbridgeUSSecLevy = longbridgeUSSECRegulatoryFee(usTransactionValue);
+        const longbridgeUSTradingFee = longbridgeUSTradingActivityFee(usShareCount, usTransactionDirection);
+        const longbridgeUSTotal = longbridgeUSComm + longbridgeUSPf + longbridgeUSClearFee + longbridgeUSSecLevy + longbridgeUSTradingFee;
 
-        // 找出最低总费用 (美股)
-        const minTotal = Math.min(longbridgeUSTotal, tigerUSTotal, futuUSTotal);
+        // 计算盈透证券美股费用
+        let ibkrUSComm = ibkrUSCommission(usPlatformMode, usShareCount, usMonthlyShareCount, usTransactionValue);
+        let ibkrUSThirdPartyFeesDetail = ibkrUSThirdPartyFees(usShareCount, usTransactionValue, usTransactionDirection);
+        let ibkrUSCollectedFees = ibkrUSThirdPartyFeesDetail.total;
+        let ibkrUSTotal = ibkrUSComm + ibkrUSCollectedFees;
 
-        // 生成结果HTML (美股) - 更新长桥证券部分代收费用显示, ADDING Futu Clearing Fee display
+
+        // 找出最低总费用
+        let minTotal = Math.min(tigerUSTotal, futuUSTotal, longbridgeUSTotal, ibkrUSTotal);
+
+        // 生成结果HTML (美股)
         document.getElementById('us-result').innerHTML = `
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+             <div class="grid grid-cols-1 mt-8 md:grid-cols-3 gap-4">
+
                 <!-- 老虎证券美股卡片 -->
-                <div class="bg-yellow-50 dark:bg-broker-yellow/10 rounded-lg p-6 border-l-4 border-yellow-400 dark:border-broker-yellow break-words flex flex-col">
-                    <div class="flex items-center mb-4">
-                        <img src="public/tiger.png" alt="老虎证券" class="h-8 w-auto mr-3 rounded-full" />
-                        <div>
-                            <div class="text-base font-semibold text-gray-900 dark:text-dark-text leading-tight flex items-center">
-                                老虎证券 (美股)
-                                ${tigerUSTotal === minTotal ? `<span class="ml-1 px-1.5 py-0.5 text-[10px] font-medium text-broker-primary bg-broker-primary/10 dark:bg-broker-primary/20 rounded-full">${languages[currentLang].bestPrice}</span>` : ''}
-                            </div>
-                            <div class="text-xs text-gray-500 dark:text-dark-text-secondary tracking-wide">TIGER BROKERS</div>
-                        </div>
-                    </div>
-                    <div class="flex-grow">
+                 <div class="bg-yellow-50 dark:bg-broker-yellow/10 rounded-lg p-6 border-l-4 border-yellow-400 dark:border-broker-yellow break-words flex flex-col">
+                     <div class="flex items-center mb-4">
+                         <img src="public/tiger.png" alt="老虎证券" class="h-8 w-auto mr-3 rounded-full" />
+                         <div>
+                             <div class="text-base font-semibold text-gray-900 dark:text-dark-text leading-tight flex items-center">
+                                 老虎证券 (美股)
+                                 ${tigerUSTotal === minTotal ? `<span class="ml-1 px-1.5 py-0.5 text-[10px] font-medium text-broker-primary bg-broker-primary/10 dark:bg-broker-primary/20 rounded-full">${languages[currentLang].bestPrice}</span>` : ''}
+                             </div>
+                             <div class="text-xs text-gray-500 dark:text-dark-text-secondary tracking-wide">TIGER BROKERS</div>
+                         </div>
+                     </div>
+                     <div class="flex-grow">
                         <h4 class="text-sm font-semibold text-gray-700 dark:text-dark-text-secondary mb-2">${languages[currentLang].agencyServiceFee}</h4>
-                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].commission}</span><span class="${usComm === 0 ? 'line-through' : ''}">${usComm.toFixed(4)} ${currencyUnit}</span></p>
-                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].platformFee}</span><span class="${usPf === 0 ? 'line-through' : ''}">${usPf.toFixed(4)} ${currencyUnit}</span></p>
-                        
-                        <h4 class="text-sm font-semibold text-gray-700 dark:text-dark-text-secondary mt-4 mb-2">${languages[currentLang].collectedFee}</h4>
-                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].usClearingFee}</span><span class="${tigerUSClearFee === 0 ? 'line-through' : ''}">${tigerUSClearFee.toFixed(4)} ${currencyUnit}</span></p>
-                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].usSECRegulatoryFee}</span><span class="${tigerUSSecLevy === 0 ? 'line-through' : ''}">${tigerUSSecLevy.toFixed(4)} ${currencyUnit}</span></p>
-                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].usTradingActivityFee}</span><span class="${tigerUSTradingFee === 0 ? 'line-through' : ''}">${tigerUSTradingFee.toFixed(4)} ${currencyUnit}</span></p>
-                    </div>
+                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].commission}</span><span class="${tigerUSComm === 0 ? 'line-through' : ''}">${tigerUSComm.toFixed(2)} ${currencyUnit}</span></p>
+                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].platformFee}</span><span class="${tigerUSPf === 0 ? 'line-through' : ''}">${tigerUSPf.toFixed(2)} ${currencyUnit}</span></p>
+                     </div>
+                    
+                     <div class="flex-grow mt-4">
+                         <h4 class="text-sm font-semibold text-gray-700 dark:text-dark-text-secondary mb-2">${languages[currentLang].collectedFee}</h4>
+                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].usClearingFee}</span><span class="${tigerUSClearFee === 0 ? 'line-through' : ''}">${tigerUSClearFee.toFixed(2)} ${currencyUnit}</span></p>
+                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].usSECRegulatoryFee}</span><span class="${tigerUSSecLevy === 0 ? 'line-through' : ''}">${tigerUSSecLevy.toFixed(2)} ${currencyUnit}</span></p>
+                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].usTradingActivityFee}</span><span class="${tigerUSTradingFee === 0 ? 'line-through' : ''}">${tigerUSTradingFee.toFixed(2)} ${currencyUnit}</span></p>
+                         <!-- Note: Tiger does not list a separate CAT fee, it might be included in other fees -->
+                     </div>
                     
                     <div class="mt-4 border-t border-gray-200 dark:border-gray-700 pt-3 w-full">
                         <p class="text-base font-semibold text-gray-900 dark:text-dark-text flex justify-between w-full">
                             <span>${languages[currentLang].totalFee}</span>
-                            <span>${tigerUSTotal.toFixed(4)} ${currencyUnit}</span>
+                            <span>${tigerUSTotal.toFixed(2)} ${currencyUnit}</span>
                         </p>
                     </div>
                 </div>
@@ -595,19 +646,21 @@ function calculateFees() {
                     </div>
                     <div class="flex-grow">
                         <h4 class="text-sm font-semibold text-gray-700 dark:text-dark-text-secondary mb-2">${languages[currentLang].agencyServiceFee}</h4>
-                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].commission}</span><span class="${futuUSComm === 0 ? 'line-through' : ''}">${futuUSComm.toFixed(4)} ${currencyUnit}</span></p>
-                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].platformFee}</span><span class="${futuUSPf === 0 ? 'line-through' : ''}">${futuUSPf.toFixed(4)} ${currencyUnit}</span></p>
-                        
-                        <h4 class="text-sm font-semibold text-gray-700 dark:text-dark-text-secondary mt-4 mb-2">${languages[currentLang].collectedFee}</h4>
-                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].usClearingFee}</span><span class="${futuUSClearFee === 0 ? 'line-through' : ''}">${futuUSClearFee.toFixed(4)} ${currencyUnit}</span></p>
-                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].usSECRegulatoryFee}</span><span class="${futuUSSECFee === 0 ? 'line-through' : ''}">${futuUSSECFee.toFixed(4)} ${currencyUnit}</span></p>
-                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].usTradingActivityFee}</span><span class="${futuUSTAFee === 0 ? 'line-through' : ''}">${futuUSTAFee.toFixed(4)} ${currencyUnit}</span></p>
+                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].commission}</span><span class="${futuUSComm === 0 ? 'line-through' : ''}">${futuUSComm.toFixed(2)} ${currencyUnit}</span></p>
+                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].platformFee}</span><span class="${futuUSPf === 0 ? 'line-through' : ''}">${futuUSPf.toFixed(2)} ${currencyUnit}</span></p>
+                    </div>
+                    
+                    <div class="flex-grow mt-4">
+                        <h4 class="text-sm font-semibold text-gray-700 dark:text-dark-text-secondary mb-2">${languages[currentLang].collectedFee}</h4>
+                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].usClearingFee}</span><span class="${futuUSClearFee === 0 ? 'line-through' : ''}">${futuUSClearFee.toFixed(2)} ${currencyUnit}</span></p>
+                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].usSECRegulatoryFee}</span><span class="${futuUSSecLevy === 0 ? 'line-through' : ''}">${futuUSSecLevy.toFixed(2)} ${currencyUnit}</span></p>
+                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].usTradingActivityFee}</span><span class="${futuUSTradingFee === 0 ? 'line-through' : ''}">${futuUSTradingFee.toFixed(2)} ${currencyUnit}</span></p>
                     </div>
                     
                     <div class="mt-4 border-t border-gray-200 dark:border-gray-700 pt-3 w-full">
                         <p class="text-base font-semibold text-gray-900 dark:text-dark-text flex justify-between w-full">
                             <span>${languages[currentLang].totalFee}</span>
-                            <span>${futuUSTotal.toFixed(4)} ${currencyUnit}</span>
+                            <span>${futuUSTotal.toFixed(2)} ${currencyUnit}</span>
                         </p>
                     </div>
                 </div>
@@ -626,26 +679,59 @@ function calculateFees() {
                     </div>
                     <div class="flex-grow">
                         <h4 class="text-sm font-semibold text-gray-700 dark:text-dark-text-secondary mb-2">${languages[currentLang].agencyServiceFee}</h4>
-                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].commission}</span><span class="${lbUSComm === 0 ? 'line-through' : ''}">${lbUSComm.toFixed(4)} ${currencyUnit}</span></p>
-                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].platformFee}</span><span class="${lbUSPf === 0 ? 'line-through' : ''}">${lbUSPf.toFixed(4)} ${currencyUnit}</span></p>
-                        
-                        <h4 class="text-sm font-semibold text-gray-700 dark:text-dark-text-secondary mt-4 mb-2">${languages[currentLang].collectedFee}</h4>
-                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].usClearingFee}</span><span class="${longbridgeUSClearFee === 0 ? 'line-through' : ''}">${longbridgeUSClearFee.toFixed(4)} ${currencyUnit}</span></p>
-                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].usSECRegulatoryFee}</span><span class="${longbridgeUSSecLevy === 0 ? 'line-through' : ''}">${longbridgeUSSecLevy.toFixed(4)} ${currencyUnit}</span></p>
-                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].usTradingActivityFee}</span><span class="${longbridgeUSTradingFee === 0 ? 'line-through' : ''}">${longbridgeUSTradingFee.toFixed(4)} ${currencyUnit}</span></p>
+                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].commission}</span><span class="${longbridgeUSComm === 0 ? 'line-through' : ''}">${longbridgeUSComm.toFixed(2)} ${currencyUnit}</span></p>
+                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].platformFee}</span><span class="${longbridgeUSPf === 0 ? 'line-through' : ''}">${longbridgeUSPf.toFixed(2)} ${currencyUnit}</span></p>
+                    </div>
+                    
+                    <div class="flex-grow mt-4">
+                        <h4 class="text-sm font-semibold text-gray-700 dark:text-dark-text-secondary mb-2">${languages[currentLang].collectedFee}</h4>
+                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].usClearingFee}</span><span class="${longbridgeUSClearFee === 0 ? 'line-through' : ''}">${longbridgeUSClearFee.toFixed(2)} ${currencyUnit}</span></p>
+                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].usSECRegulatoryFee}</span><span class="${longbridgeUSSecLevy === 0 ? 'line-through' : ''}">${longbridgeUSSecLevy.toFixed(2)} ${currencyUnit}</span></p>
+                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].usTradingActivityFee}</span><span class="${longbridgeUSTradingFee === 0 ? 'line-through' : ''}">${longbridgeUSTradingFee.toFixed(2)} ${currencyUnit}</span></p>
                     </div>
                     
                     <div class="mt-4 border-t border-gray-200 dark:border-gray-700 pt-3 w-full">
                         <p class="text-base font-semibold text-gray-900 dark:text-dark-text flex justify-between w-full">
                             <span>${languages[currentLang].totalFee}</span>
-                            <span>${longbridgeUSTotal.toFixed(4)} ${currencyUnit}</span>
+                            <span>${longbridgeUSTotal.toFixed(2)} ${currencyUnit}</span>
                         </p>
                     </div>
                 </div>
 
+                <!-- 盈透证券美股卡片 -->
+                <div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-6 border-l-4 border-red-600 dark:border-red-700 break-words flex flex-col">
+                    <div class="flex items-center mb-4">
+                         <img src="public/ibkr.png" alt="盈透证券" class="h-8 w-auto mr-3 rounded-full" />
+                         <div>
+                             <div class="text-base font-semibold text-gray-900 dark:text-dark-text leading-tight flex items-center">
+                                 盈透证券 (美股)
+                                 ${ibkrUSTotal === minTotal ? `<span class="ml-1 px-1.5 py-0.5 text-[10px] font-medium text-red-800 bg-red-200 dark:text-red-200 dark:bg-red-800/30 rounded-full">${languages[currentLang].bestPrice}</span>` : ''}
+                             </div>
+                             <div class="text-xs text-gray-500 dark:text-dark-text-secondary tracking-wide">IBKR</div>
+                         </div>
+                    </div>
+                     <div class="flex-grow">
+                        <h4 class="text-sm font-semibold text-gray-700 dark:text-dark-text-secondary mb-2">${languages[currentLang].agencyServiceFee}</h4>
+                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].commission}</span><span class="${ibkrUSComm === 0 ? 'line-through' : ''}">${ibkrUSComm.toFixed(2)} ${currencyUnit}</span></p>
+                         <!-- IBKR does not list a separate Platform Fee in their US pricing -->
+                     </div>
+                    
+                     <div class="flex-grow mt-4">
+                         <h4 class="text-sm font-semibold text-gray-700 dark:text-dark-text-secondary mb-2">${languages[currentLang].collectedFee}</h4>
+                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].usSECRegulatoryFee}</span><span class="${ibkrUSThirdPartyFeesDetail.secFee === 0 ? 'line-through' : ''}">${ibkrUSThirdPartyFeesDetail.secFee.toFixed(2) } ${currencyUnit}</span></p>
+                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].usTradingActivityFee}</span><span class="${ibkrUSThirdPartyFeesDetail.finraTaf === 0 ? 'line-through' : ''}">${ibkrUSThirdPartyFeesDetail.finraTaf.toFixed(2) } ${currencyUnit}</span></p>
+                        <p class="text-sm text-gray-600 dark:text-dark-text-secondary flex justify-between w-full"><span>${languages[currentLang].usCATFee}</span><span class="${ibkrUSThirdPartyFeesDetail.catFee === 0 ? 'line-through' : ''}">${ibkrUSThirdPartyFeesDetail.catFee.toFixed(2) } ${currencyUnit}</span></p>
+                        <!-- Note: Exchange/Clearing/Pass-Through Fees can also apply but are complex and variable -->
+                     </div>
+                    
+                    <div class="mt-4 border-t border-gray-200 dark:border-gray-700 pt-3 w-full">
+                        <p class="text-base font-semibold text-gray-900 dark:text-dark-text flex justify-between w-full">
+                            <span>${languages[currentLang].totalFee}</span>
+                            <span>${ibkrUSTotal.toFixed(2)} ${currencyUnit}</span>
+                        </p>
+                    </div>
+                </div>
             </div>
-        </div>
-        <p class="text-center text-gray-500 dark:text-dark-text-secondary mt-6 text-xs">${languages[currentLang].disclaimer}</p>
-    `;
-}
+        `;
+    }
 }
