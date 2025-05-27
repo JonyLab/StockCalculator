@@ -52,7 +52,7 @@
                 </button>
             </div>
         </div>
-        
+
         <div class="bg-white dark:bg-dark-card rounded-2xl p-4 sm:p-8 shadow-sm">
             <!-- Tab 组件 -->
             <div class="w-full mb-8">
@@ -82,7 +82,7 @@
                             class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-dark-bg text-gray-900 dark:text-dark-text focus:border-broker-primary focus:ring-2 focus:ring-broker-primary/20 transition"
                             placeholder="请输入每月交易笔数">
                     </div>
-                </div>
+        </div>
 
                 <!-- 统一平台费模式选择 -->
                 <div class="w-full mb-6">
@@ -92,7 +92,7 @@
                             class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-gray-200 dark:border-gray-700 appearance-none bg-white dark:bg-dark-bg text-gray-900 dark:text-dark-text focus:border-broker-primary focus:ring-2 focus:ring-broker-primary/20 transition">
                             <option value="fixed">固定式</option>
                             <option value="stepped">阶梯式</option>
-                        </select>
+            </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-gray-700 dark:text-dark-text-secondary">
                             <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                                 <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
@@ -128,6 +128,31 @@
                     </div>
                 </div>
                 
+                <!-- 每月交易股数输入 -->
+                <div class="w-full mb-6">
+                    <label id="usMonthlyShareCountLabel" class="text-sm font-medium text-gray-500 dark:text-dark-text-secondary mb-2 block">每月交易股数</label>
+                    <input type="number" id="usMonthlyShareCount" min="0" value="1000"
+                        class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-dark-bg text-gray-900 dark:text-dark-text focus:border-broker-primary focus:ring-2 focus:ring-broker-primary/20 transition"
+                        placeholder="请输入每月交易股数">
+        </div>
+
+                <!-- 交易方向选择 -->
+                <div class="w-full mb-6">
+                    <label id="usTransactionDirectionLabel" class="text-sm font-medium text-gray-500 dark:text-dark-text-secondary mb-2 block">交易方向</label>
+                    <div class="relative">
+                        <select id="usTransactionDirectionSelect" 
+                            class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-gray-200 dark:border-gray-700 appearance-none bg-white dark:bg-dark-bg text-gray-900 dark:text-dark-text focus:border-broker-primary focus:ring-2 focus:ring-broker-primary/20 transition">
+                            <option value="buy">买入</option>
+                            <option value="sell">卖出</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-gray-700 dark:text-dark-text-secondary">
+                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                            </svg>
+                        </div>
+                    </div>
+        </div>
+                
                 <!-- 平台费模式选择 (美股按股数，可能需要独立或调整 logic) -->
                 <div class="w-full mb-6">
                     <label id="usPlatformModeLabel" class="text-sm font-medium text-gray-500 dark:text-dark-text-secondary mb-2 block">平台费模式</label>
@@ -136,21 +161,21 @@
                             class="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg border border-gray-200 dark:border-gray-700 appearance-none bg-white dark:bg-dark-bg text-gray-900 dark:text-dark-text focus:border-broker-primary focus:ring-2 focus:ring-broker-primary/20 transition">
                             <option value="fixed">固定式</option>
                             <option value="stepped">阶梯式</option>
-                        </select>
+            </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4 text-gray-700 dark:text-dark-text-secondary">
                             <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                                 <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
                             </svg>
                         </div>
                     </div>
-                </div>
-                
-                <button onclick="calculateFees()" 
+        </div>
+
+        <button onclick="calculateFees()" 
                     class="w-full bg-broker-primary text-white px-4 py-2 sm:py-3 rounded-full font-medium 
-                    hover:bg-broker-primary/90 transition-shadow hover:shadow-lg">
-                    计算费用对比
-                </button>
-                
+            hover:bg-broker-primary/90 transition-shadow hover:shadow-lg">
+            计算费用对比
+        </button>
+
                 <div id="us-result" class="mt-8"></div>
             </div>
         </div>
